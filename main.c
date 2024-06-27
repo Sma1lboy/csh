@@ -7,6 +7,7 @@
 #include "commands.h"
 #include "redirection.h"
 #include "alias.h"
+#include "fdwrite.h"
 
 #define MAX_ARGS_BYTES 512 // Maximum number of bytes for command line arguments
 
@@ -31,10 +32,10 @@ int main(int argc, char *argv[])
     char cmd_buffer[MAX_ARGS_BYTES + 1];
     while (1)
     {
-      write(STDOUT_FILENO, prompt_msg, strlen(prompt_msg));
+      fdwrite(STDOUT_FILENO, prompt_msg);
       if (fgets(cmd_buffer, MAX_ARGS_BYTES, stdin) == NULL)
       {
-        write(STDERR_FILENO, read_error_msg, strlen(read_error_msg));
+        fdwrite(STDERR_FILENO, read_error_msg);
         exit(1);
       }
       cmd_buffer[strcspn(cmd_buffer, "\n")] = 0;
@@ -48,7 +49,7 @@ int main(int argc, char *argv[])
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0)
     {
-      write(STDERR_FILENO, file_open_error_msg, strlen(file_open_error_msg));
+      fdwrite(STDERR_FILENO, file_open_error_msg);
       exit(1);
     }
 
@@ -59,7 +60,7 @@ int main(int argc, char *argv[])
     FILE *file = fdopen(fd, "r");
     if (!file)
     {
-      write(STDERR_FILENO, fdopen_error_msg, strlen(fdopen_error_msg));
+      fdwrite(STDERR_FILENO, fdopen_error_msg);
       close(fd);
       exit(1);
     }
@@ -74,7 +75,7 @@ int main(int argc, char *argv[])
       char *line_copy = strdup(line);
       if (line_copy == NULL)
       {
-        write(STDERR_FILENO, strdup_error_msg, strlen(strdup_error_msg));
+        fdwrite(STDERR_FILENO, strdup_error_msg);
         free(line);
         fclose(file);
         close(fd);
@@ -83,12 +84,12 @@ int main(int argc, char *argv[])
 
       if (strlen(line_copy) == 0)
       {
-        write(STDOUT_FILENO, "\n", 1);
+        fdwrite(STDOUT_FILENO, "\n");
       }
       else
       {
-        write(STDOUT_FILENO, line_copy, strlen(line_copy));
-        write(STDOUT_FILENO, "\n", 1);
+        fdwrite(STDOUT_FILENO, line_copy);
+        fdwrite(STDOUT_FILENO, "\n");
         exec_command(line_copy);
       }
 
@@ -97,7 +98,7 @@ int main(int argc, char *argv[])
 
     if (ferror(file))
     {
-      write(STDERR_FILENO, file_read_error_msg, strlen(file_read_error_msg));
+      fdwrite(STDERR_FILENO, file_read_error_msg);
     }
 
     free(line);

@@ -5,6 +5,7 @@
 #include "commands.h"
 #include "alias.h"
 #include "redirection.h"
+#include "fdwrite.h"
 
 #define MAX_ARGS_BYTES 512 // Maximum number of bytes for command line arguments
 
@@ -69,7 +70,7 @@ int export_cmd(char *args[], int size)
     else
     {
       const char *error_msg = "Error: Invalid format. Use export KEY=VALUE\n";
-      write(STDERR_FILENO, error_msg, strlen(error_msg));
+      fdwrite(STDERR_FILENO, error_msg);
       return 0;
     }
   }
@@ -98,13 +99,13 @@ int unset_cmd(char *args[], int size)
       if (unsetenv(args[i]) < 0)
       {
         const char *error_msg = "Error: fail to unset env\n";
-        write(STDERR_FILENO, error_msg, strlen(error_msg));
+        fdwrite(STDERR_FILENO, error_msg);
       }
     }
     if (unpresent_f)
     {
       const char *error_msg = "unset: environment variable not present\n";
-      write(STDERR_FILENO, error_msg, strlen(error_msg));
+      fdwrite(STDERR_FILENO, error_msg);
     }
     return 1; // exec success
   }
@@ -166,14 +167,14 @@ void exec_command(char *cmd)
         if (dup2(fd, STDOUT_FILENO) < 0)
         {
           const char *redir_fail_msg = "Error: redirection failed\n";
-          write(STDERR_FILENO, redir_fail_msg, strlen(redir_fail_msg));
+          fdwrite(STDERR_FILENO, redir_fail_msg);
           exit(1);
         }
         close(fd);
       }
       execvp(args[0], args);
       const char *cmd_not_found_msg = "Error: command not found\n";
-      write(STDERR_FILENO, cmd_not_found_msg, strlen(cmd_not_found_msg));
+      fdwrite(STDERR_FILENO, cmd_not_found_msg);
       exit(1);
     }
     else

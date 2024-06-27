@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "alias.h"
 #include "commands.h"
+#include "fdwrite.h" // 添加对 fdwrite 函数的包含
 
 #define MAX_ARGS_BYTES 512 // Maximum number of bytes for command line arguments
 
@@ -25,14 +26,14 @@ alias_q *create_alias(char *key, char *value)
   alias_q *alias = calloc(1, sizeof(alias_q));
   if (!alias)
   {
-    write(STDERR_FILENO, alloc_error_msg, strlen(alloc_error_msg));
+    fdwrite(STDERR_FILENO, alloc_error_msg);
     exit(1);
   }
 
   alias->key = strdup(key);
   if (!alias->key)
   {
-    write(STDERR_FILENO, key_error_msg, strlen(key_error_msg));
+    fdwrite(STDERR_FILENO, key_error_msg);
     free(alias);
     exit(1);
   }
@@ -40,7 +41,7 @@ alias_q *create_alias(char *key, char *value)
   alias->value = strdup(value);
   if (!alias->value)
   {
-    write(STDERR_FILENO, value_error_msg, strlen(value_error_msg));
+    fdwrite(STDERR_FILENO, value_error_msg);
     free(alias->key);
     free(alias);
     exit(1);
@@ -113,7 +114,7 @@ int alias_cmd(char *args[], int size)
         char *cmd = (char *)malloc(strlen(curr->value) + 1);
         if (cmd == NULL)
         {
-          write(STDERR_FILENO, alloc_cmd_error_msg, strlen(alloc_cmd_error_msg));
+          fdwrite(STDERR_FILENO, alloc_cmd_error_msg);
           exit(1);
         }
         strcpy(cmd, curr->value);
@@ -134,7 +135,7 @@ int alias_cmd(char *args[], int size)
     while (curr != NULL)
     {
       int len = snprintf(buffer, sizeof(buffer), "%s='%s'\n", curr->key, curr->value);
-      write(STDOUT_FILENO, buffer, len);
+      fdwrite(STDOUT_FILENO, buffer);
       curr = curr->next;
     }
     return 1;
@@ -149,7 +150,7 @@ int alias_cmd(char *args[], int size)
       if (strcmp(args[1], curr->key) == 0)
       {
         int len = snprintf(buffer, sizeof(buffer), "%s='%s'\n", curr->key, curr->value);
-        write(STDOUT_FILENO, buffer, len);
+        fdwrite(STDOUT_FILENO, buffer);
         f_flag = 1;
         break;
       }
@@ -158,7 +159,7 @@ int alias_cmd(char *args[], int size)
 
     if (!f_flag)
     {
-      write(STDERR_FILENO, alias_not_found_msg, strlen(alias_not_found_msg));
+      fdwrite(STDERR_FILENO, alias_not_found_msg);
     }
     return f_flag;
   }

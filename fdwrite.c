@@ -1,17 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "fdwrite.h"
-
-int main()
+ssize_t fdwrite(int fd, const char *str)
 {
-  const char *message = "Hello, World!\n";
-  int fd = STDOUT_FILENO; // 写入标准输出
-
-  if (fdwrite(fd, message) == -1)
+  size_t len = strlen(str);
+  ssize_t written = write(fd, str, len);
+  if (written == -1)
   {
-    fprintf(stderr, "Failed to write to file descriptor %d\n", fd);
-    return EXIT_FAILURE;
+    perror("write");
   }
-
-  return EXIT_SUCCESS;
+  return written;
 }

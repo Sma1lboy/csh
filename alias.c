@@ -134,7 +134,6 @@ int alias_cmd(char *args[], int size)
     alias_q *curr = header_alias_q;
     while (curr != NULL)
     {
-      int len = snprintf(buffer, sizeof(buffer), "%s='%s'\n", curr->key, curr->value);
       fdwrite(STDOUT_FILENO, buffer);
       curr = curr->next;
     }
@@ -149,7 +148,6 @@ int alias_cmd(char *args[], int size)
     {
       if (strcmp(args[1], curr->key) == 0)
       {
-        int len = snprintf(buffer, sizeof(buffer), "%s='%s'\n", curr->key, curr->value);
         fdwrite(STDOUT_FILENO, buffer);
         f_flag = 1;
         break;

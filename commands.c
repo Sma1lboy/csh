@@ -42,7 +42,7 @@ int env_cmd_check(char *args[], int size)
  */
 int exit_cmd(char *args[], int size)
 {
-  if (strcmp(args[0], "exit") == 0)
+  if (strcmp(args[0], "exit") == 0 && size == 1)
   {
     exit(0);
   }
@@ -113,6 +113,79 @@ int unset_cmd(char *args[], int size)
 }
 
 /**
+ * pipe_command_check - checks for and handles commands with pipes
+ * @cmd: the command to execute
+ *
+ * Return: 1 if the command contains a pipe and is executed, 0 otherwise
+ */
+int pipe_command_check(char *cmd)
+{
+  char *args[MAX_ARGS_BYTES];
+  int i = 0;
+  char *saveptr;
+  char *token = strtok_r(cmd, "|", &saveptr);
+  while (token != NULL)
+  {
+    args[i] = token;
+    token = strtok_r(NULL, "|", &saveptr);
+    i++;
+  }
+  args[i] = NULL;
+
+  if (i == 1)
+  {
+    return 0; // No pipe found
+  }
+
+  int pipefd[2];
+  int pid;
+  int fd_in = 0;
+
+  for (int j = 0; j < i; j++)
+  {
+    pipe(pipefd);
+    if ((pid = fork()) == -1)
+    {
+      perror("fork");
+      exit(EXIT_FAILURE);
+    }
+    else if (pid == 0)
+    {
+      dup2(fd_in, 0); // Change the input according to the old one
+      if (j < i - 1)
+      {
+        dup2(pipefd[1], 1);
+      }
+      close(pipefd[0]);
+      close(pipefd[1]);
+
+      char *cmd_args[MAX_ARGS_BYTES];
+      char *cmd_saveptr;
+      char *cmd_token = strtok_r(args[j], " ", &cmd_saveptr);
+      int k = 0;
+      while (cmd_token != NULL)
+      {
+        cmd_args[k] = cmd_token;
+        cmd_token = strtok_r(NULL, " ", &cmd_saveptr);
+        k++;
+      }
+      cmd_args[k] = NULL;
+
+      execvp(cmd_args[0], cmd_args);
+      perror("execvp");
+      exit(EXIT_FAILURE);
+    }
+    else
+    {
+      wait(NULL);
+      close(pipefd[1]);
+      fd_in = pipefd[0]; // Save the input for the next command
+    }
+  }
+  return 1;
+}
+
+/**
  * builtin_command_check - checks if the command is a built-in command
  * @args: array of command arguments
  * @size: number of arguments
@@ -127,12 +200,13 @@ int builtin_command_check(char *args[], int size)
          unset_cmd(args, size);
 }
 
-/**
- * exec_command - executes a command
- * @cmd: the command to execute
- */
 void exec_command(char *cmd)
 {
+  if (pipe_command_check(cmd))
+  {
+    return; // 如果命令包含管道并已执行，则返回
+  }
+
   char *args[MAX_ARGS_BYTES];
   int i = 0;
   char *saveptr;

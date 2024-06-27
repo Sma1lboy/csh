@@ -7,5 +7,6 @@ int export_cmd(char *args[], int size);
 int unset_cmd(char *args[], int size);
 void exec_command(char *cmd);
 int builtin_command_check(char *args[], int size);
+int pipe_command_check(char *cmd);
 
 #endif

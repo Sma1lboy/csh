@@ -26,6 +26,8 @@ Welcome to **csh**, a custom shell program implemented in C! 🎉
 
 - **Configuration Appearance**
 - **Refactor main.c**
+- **Tab autocompletion**
+- **Up-Down history searching**
 
 ## Getting Started 🚀
 

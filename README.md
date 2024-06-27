@@ -12,6 +12,20 @@ Welcome to **csh**, a custom shell program implemented in C! 🎉
   - Create, view, and manage command aliases.
 - **Modular Design** 🧩
   - Organized codebase for better readability and maintainability.
+- **Environment Variable Initialization** 🌐
+  - Automatically sets the `SHELL` environment variable to the shell's executable path.
+- **Configuration File Support** 📜
+  - Reads and executes commands from `~/.cshrc` configuration file on startup.
+  - Creates a default `~/.cshrc` if it doesn't exist.
+- **Comment Handling** 📝
+  - Skips lines starting with `#` in the configuration file.
+- **Cross-Platform Compatibility** 🌍
+  - Supports macOS (using `_NSGetExecutablePath`) and Linux (using `/proc/self/exe`).
+
+## Next Step
+
+- **Configuration Appearance**
+- **Refactor main.c**
 
 ## Getting Started 🚀
 
@@ -35,8 +49,14 @@ Welcome to **csh**, a custom shell program implemented in C! 🎉
    ```
 
 3. Run the shell:
+
    ```sh
    ./csh
+   ```
+
+4. Or install the shell:
+   ```sh
+   sudo make install
    ```
 
 ### Cleaning Up
@@ -84,7 +104,8 @@ make clean
 - `redirection.c`: Implementation of input/output redirection.
 - `alias.c`: Implementation of alias management.
 - `utils.c`: Utility functions.
-- `commands.h`, `redirection.h`, `alias.h`, `utils.h`: Header files declaring functions and structures.
+- `fdwrite.c`: Implementation of file descriptor writing functions.
+- `commands.h`, `redirection.h`, `alias.h`, `utils.h`, `fdwrite.h`: Header files declaring functions and structures.
 
 ## Contributing 🤝
 

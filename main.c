@@ -5,6 +5,11 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <limits.h>
+
+#ifdef __APPLE__
+#include <mach-o/dyld.h>
+#endif
+
 #include "commands.h"
 #include "redirection.h"
 #include "alias.h"
@@ -111,6 +116,35 @@ void run(int argc, char *argv[])
 }
 
 /**
+ * get_executable_path - get the absolute path of the current executable
+ * @abs_path: buffer to store the absolute path
+ * @size: size of the buffer
+ *
+ * Return: 0 on success, -1 on failure
+ */
+int get_executable_path(char *abs_path, size_t size)
+{
+#ifdef __APPLE__
+  uint32_t path_size = (uint32_t)size;
+  if (_NSGetExecutablePath(abs_path, &path_size) != 0)
+  {
+    return -1;
+  }
+  return 0;
+#elif __linux__
+  ssize_t len = readlink("/proc/self/exe", abs_path, size - 1);
+  if (len == -1)
+  {
+    return -1;
+  }
+  abs_path[len] = '\0';
+  return 0;
+#else
+#error "Unsupported platform"
+#endif
+}
+
+/**
  * main - entry point of the shell program
  * @argc: argument count
  * @argv: argument vector
@@ -120,12 +154,15 @@ void run(int argc, char *argv[])
 int main(int argc, char *argv[])
 {
   char abs_path[PATH_MAX];
-  if (realpath(argv[0], abs_path) == NULL)
+  if (get_executable_path(abs_path, sizeof(abs_path)) != 0)
   {
-    perror("Error resolving absolute path");
+    fprintf(stderr, "Error resolving absolute path\n");
     return EXIT_FAILURE;
   }
-  env_initializer(abs_path);
+  if (!env_initializer(abs_path))
+  {
+    return EXIT_FAILURE;
+  }
   run(argc, argv);
   return 0;
 }

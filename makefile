@@ -8,12 +8,12 @@ CFLAGS = -Wall -Wextra -std=c99
 TARGET = csh
 
 # source 
-SRCS = main.c commands.c redirection.c alias.c 
+SRCS = main.c commands.c redirection.c alias.c fdwrite.c
 
 OBJS = $(SRCS:.c=.o)
 
 # HHeader
-DEPS = commands.h redirection.h alias.h 
+DEPS = commands.h redirection.h alias.h fdwrite.h
 
 all: $(TARGET)
 
@@ -22,6 +22,11 @@ $(TARGET): $(OBJS)
 
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c $< -o $@
+
+
+install: $(TARGET)
+	install -m 755 $(TARGET) /usr/local/bin/$(TARGET)
+
 
 clean:
 	rm -f $(OBJS) $(TARGET)

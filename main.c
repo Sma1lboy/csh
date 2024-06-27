@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include <fcntl.h>
+#include <limits.h>
 #include "commands.h"
 #include "redirection.h"
 #include "alias.h"
@@ -11,14 +12,17 @@
 
 #define MAX_ARGS_BYTES 512 // Maximum number of bytes for command line arguments
 
-/**
- * main - entry point of the shell program
- * @argc: argument count
- * @argv: argument vector
- *
- * Return: 0 on success, 1 on error
- */
-int main(int argc, char *argv[])
+int env_initializer(char *exec_path)
+{
+  if (setenv("SHELL", exec_path, 1) == -1)
+  {
+    fdwrite(STDERR_FILENO, "Error: setting SHELL environment variable\n");
+    return 0;
+  }
+  return 1;
+}
+
+void run(int argc, char *argv[])
 {
   const char *prompt_msg = "csh> ";
   const char *read_error_msg = "Error: reading command\n";
@@ -104,5 +108,24 @@ int main(int argc, char *argv[])
     free(line);
     fclose(file);
   }
+}
+
+/**
+ * main - entry point of the shell program
+ * @argc: argument count
+ * @argv: argument vector
+ *
+ * Return: 0 on success, 1 on error
+ */
+int main(int argc, char *argv[])
+{
+  char abs_path[PATH_MAX];
+  if (realpath(argv[0], abs_path) == NULL)
+  {
+    perror("Error resolving absolute path");
+    return EXIT_FAILURE;
+  }
+  env_initializer(abs_path);
+  run(argc, argv);
   return 0;
 }

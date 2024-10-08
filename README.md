@@ -40,7 +40,7 @@ Welcome to **csh**, a custom shell program implemented in C! 🎉
 1. Clone the repository:
 
    ```sh
-   git clone https://github.com/yourusername/csh.git
+   git clone https://github.com/Sma1lboy/csh.git
    cd csh
    ```
 
